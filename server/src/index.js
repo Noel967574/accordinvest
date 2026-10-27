@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { allContent, db, getContent, setContent } from './db.js';
 import { seedContent } from './content.seed.js';
 import { seedPlans } from './plans.seed.js';
@@ -87,13 +88,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/account', csrfGuard, accountRoutes);
 app.use('/api/admin', csrfGuard, adminRoutes);
 
-app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
-
-const clientDist = path.resolve(process.cwd(), '..', 'client', 'dist');
+const clientDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../client/dist');
 if (existsSync(clientDist)) {
   app.use(express.static(clientDist));
   app.get(/^\/(?!api).*/, (_req, res) => res.sendFile(path.join(clientDist, 'index.html')));
 }
+
+app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 
 app.use((err, _req, res, _next) => {
   console.error(err);
